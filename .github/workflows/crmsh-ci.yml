@@ -4,7 +4,13 @@
 
 name: crmsh CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types:
+      - opened
+      - closed
+      - synchronize
+      - reopened
 
 env:
   DOCKER_SCRIPT: ./test/run-functional-tests
@@ -203,7 +209,7 @@ jobs:
       id: pr-url
     - uses: actions/checkout@v3
     - name: generate test package
-      if: github.repository == 'ClusterLabs/crmsh' && github.ref != 'refs/heads/master'
+      if: github.event.action != 'closed'
       run: |
         last_commit=${{ github.sha }}
         pr_url=${{ steps.pr-url.outputs.url }}
@@ -221,6 +227,22 @@ jobs:
           -e PACKAGE_NAME=$PACKAGE_NAME \
           liangxin1300/continuous_deliver \
           /bin/bash -c "cd /package;/scripts/upload.sh"
+    - name: remove test package when merged or closed
+      if: github.event.action == 'closed'
+      run: |
+        echo ${{ github.event.action }}
+        last_commit=${{ github.sha }}
+        echo "github.sha: $last_commit"
+        docker pull liangxin1300/continuous_deliver:latest
+        docker run -t -v "$(pwd):/package" \
+          -e OBS_USER=$OBS_USER \
+          -e OBS_PASS=$OBS_PASS \
+          -e FOLDER=$FOLDER \
+          -e LAST_COMMIT="$last_commit" \
+          -e OBS_PROJECT=$OBS_PROJECT \
+          -e PACKAGE_NAME=$PACKAGE_NAME \
+          liangxin1300/continuous_deliver \
+          /bin/bash -c "cd /package;/scripts/upload.sh remove"
     - name: delivery process
       if: github.repository == 'ClusterLabs/crmsh' && github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: |
