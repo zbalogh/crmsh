@@ -36,6 +36,36 @@ Python module sources and install into the Python system site-packages
 directory.
 
 ```shell
+Required dependencies (packages):
+
+make
+autoconf
+automake
+which
+pacemaker
+python3
+python3-pip
+python3-pyyaml
+python3-lxml
+python3-dateutil
+```
+
+Install the required packages:
+
+```shell
+yum install --exclude=*.i?86 python3 python3-pip python3-pyyaml python3-lxml python3-dateutil make autoconf automake which pacemaker
+```
+
+Install Python Parallax 1.0.6 (required by crmsh 4.4.1)
+
+```shell
+wget https://files.pythonhosted.org/packages/2c/8e/9f0f50894c5e12df5b3d2352202985ed60feafbb991f304767d987b49035/parallax-1.0.6-py3-none-any.whl -P /tmp/crmsh
+pip3 install /tmp/crmsh/parallax-1.0.6-py3-none-any.whl
+```
+
+Finally, configure and build crmsh
+
+```shell
 ./autogen.sh
 ./configure
 make
